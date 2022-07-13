@@ -164,8 +164,8 @@ def makespan(seq, tasklist) : #seq records index
 if __name__ == '__main__' :
     ins = instance('./TestingInstances/100/100_1.txt')
     tasks = ins.tasklist
-    iterations = 20
-    optimizer1 = gwo(tasks, 0, 4, 200, iterations)
+    iterations = 25
+    optimizer1 = gwo(tasks, 0, 4, 100, iterations)
     optimizer1.optimize()
     x = range(iterations)
     y = optimizer1.bestvalues
