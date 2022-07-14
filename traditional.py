@@ -65,7 +65,7 @@ class wolf :
         rnd = random.Random()
         A1, A2, A3 = a * (2 * rnd.random() - 1), a * (
               2 * rnd.random() - 1), a * (2 * rnd.random() - 1)
-        C1, C2, C3 = 2 * rnd.random(), 2*rnd.random(), 2*rnd.random()
+        C1, C2, C3 = rnd.random(), rnd.random(), rnd.random()
 
         D1 = abs(C1 * alpha_position - self.position)
         D2 = abs(C2 * beta_position - self.position)
@@ -164,8 +164,8 @@ def makespan(seq, tasklist) : #seq records index
 if __name__ == '__main__' :
     ins = instance('./TestingInstances/100/100_1.txt')
     tasks = ins.tasklist
-    iterations = 25
-    optimizer1 = gwo(tasks, 0, 4, 100, iterations)
+    iterations = 500
+    optimizer1 = gwo(tasks, 0, 4, 500, iterations)
     optimizer1.optimize()
     x = range(iterations)
     y = optimizer1.bestvalues
