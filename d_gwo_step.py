@@ -1,4 +1,4 @@
-from math import log
+from math import log, sin
 from math import exp
 import random
 import matplotlib.pyplot as plt
@@ -89,19 +89,19 @@ class c_gwo :
         self.tasklist = tasklist
         self.dim = len(tasklist)
         self.max_iter = max_iter
-        self.bestvalues = list()
+        self.alphavalues = list()
 
         for i in range(population) :
             self.wolves.append(c_wolf(tasklist, minx, maxx))
     
     def optimize(self) :
-        self.bestvalues.clear()
+        self.alphavalues.clear()
 
         for iter in range(self.max_iter) :
             a = 2 * (1 - iter / self.max_iter)
 
             self.wolves = sorted(self.wolves, key = lambda item : item.fit)
-            self.bestvalues.append(self.wolves[0].fit)
+            self.alphavalues.append(self.wolves[0].fit)
 
             alpha_position = self.wolves[0].position
             beta_position = self.wolves[1].position
@@ -145,20 +145,42 @@ class d_gwo :
         self.tasklist = tasklist
         self.dim = len(tasklist)
         self.max_iter = max_iter
+        self.alphavalues = list()
         self.bestvalues = list()
+        self.besttrace = list()
+        
 
         for i in range(population) :
             self.wolves.append(d_wolf(tasklist))
 
     def optimize(self) :
+        self.alphavalues.clear()
+        self.besttrace.clear()
         self.bestvalues.clear()
 
         for iter in range(self.max_iter) :
+            print(iter)
             x = iter / self.max_iter
             a = updatefunction(x)
 
+            # # sigmoid
+            # x = 10 * iter / self.max_iter
+            # a = 0.5 / (1 + exp(x - 5))
+
             self.wolves = sorted(self.wolves, key = lambda item : item.fit)
-            self.bestvalues.append(self.wolves[0].fit)
+            self.alphavalues.append(self.wolves[0].fit)
+            if self.bestvalues != [] :
+                if self.wolves[0].fit < self.bestvalues[-1] :
+                    self.bestvalues.append(self.wolves[0].fit)
+                    self.besttrace.append(self.wolves[0].seq)
+                else :
+                    self.bestvalues.append(self.bestvalues[-1])
+                    self.besttrace.append(self.besttrace[-1])
+            else :
+                self.bestvalues.append(self.wolves[0].fit)
+                self.besttrace.append(self.wolves[0].seq)
+
+
 
             alpha_seq = self.wolves[0].seq
             beta_seq = self.wolves[1].seq
@@ -195,10 +217,6 @@ def makespan(seq, tasklist) : #seq records index
 
     return completetime[-1]
 
-
-def updatefunction(x) :
-    return 0.5 * (1 - x) * (1 + 0.3 * np.sin(25 * x))
-    
 def Dn(n) :
     d_n = - (n % 2) + (n + 1) % 2
     sum = 0
@@ -235,12 +253,13 @@ def footrule(a, b) :
 def randseq(seq, distance) :
     newseq = [i for i in seq]
     length = len(seq)
-    distance = int(distance)
     if distance > length :
         distance = length
 
     if distance <= 0 :
         distance = 1
+    
+    distance = int(distance)
 
     indexes = [i for i in range(length)]
     pickedindex = list()
@@ -287,6 +306,8 @@ def randseq(seq, distance) :
 
     return newseq
 
+def updatefunction(x) :
+    return 0.5 * (1 - x) * (1 + 0.3 * np.sin(25 * x))
 
 if __name__ == '__main__' :
     ins = instance('./TestingInstances/100/100_1.txt')
@@ -303,51 +324,32 @@ if __name__ == '__main__' :
     x1 = range(iterations)
     y1 = optimizer1.bestvalues
 
-    y1 = list()
-    for i in range(len(optimizer1.bestvalues)) :
-        if y1 != [] :
-            if optimizer1.bestvalues[i] < y1[-1] :
-                y1.append(optimizer1.bestvalues[i])
-            else:
-                y1.append(y1[-1])
-        else :
-            y1.append(optimizer1.bestvalues[i])
-
-    optimizer2 = c_gwo(tasks, 0, 4, population, iterations)
-    time_start = time.time() 
-    optimizer2.optimize()
-    time_end = time.time()
-    time_c2 = time_end - time_start
-    x2 = range(iterations)
-    y2 = list()
-    for i in range(len(optimizer2.bestvalues)) :
-        if y2 != [] :
-            if optimizer2.bestvalues[i] < y2[-1] :
-                y2.append(optimizer2.bestvalues[i])
-            else:
-                y2.append(y2[-1])
-        else :
-            y2.append(optimizer2.bestvalues[i])
-
 
     fig = plt.figure()
-    ax1 = plt.subplot(1, 2, 1)
-    ax1.plot(x1, y1, label = 'alpha_value')
+    ax1 = plt.subplot(3, 1, 1)
+    ax1.plot(x1, y1, label = 'best_value')
     ax1.set_xlabel('iterations')
     plt.setp(ax1.get_xticklabels(), fontsize=6)
 
     ax1.legend()
     
     ax1.set_title('Discrete GWO\n Time Consumed: ' + str(time_c1) + 
-    's\n best value: ' + str(optimizer1.bestvalues[-1]))
+    's\n best value: ' + str(optimizer1.alphavalues[-1]))
 
-    ax2 = plt.subplot(1, 2, 2, sharey=ax1)
-    ax2.plot(x2, y2, label = 'alpha_value')
+    ax2 = plt.subplot(3, 1, 2)
+    x2 = range(iterations)
+    y2 = list()
+    for i in x2 :
+        y2.append(footrule(optimizer1.besttrace[-1], optimizer1.besttrace[i]))
+    ax2.plot(x2, y2, label = 'distance')
     ax2.set_xlabel('iterations')
+
     ax2.legend()
-    
-    ax2.set_title('Continuous GWO\n Time Consumed: ' + str(time_c2) + 
-    's\n best value: ' + str(optimizer2.bestvalues[-1]))
-    
+
+    ax3 = plt.subplot(3, 1, 3)
+    x3 = np.linspace(0, iterations)
+    y3 = updatefunction(x3 / iterations)
+    ax3.plot(x3, y3)
+    ax3.set_xlabel('iterations')
 
     plt.show()

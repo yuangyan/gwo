@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
+
+
+
+
 w = 5000000
 g0 = -40
 theta = 4
@@ -39,6 +43,13 @@ class instance :
                 i += 1
 
 
+def footrule(a, b) :
+    distance = 0
+    for i in range(len(a)) :
+        if a[i] != b[i] :
+            distance += 1
+    return distance
+
 def order1(chromosome1, chromosome2) :
     N = len(chromosome1)
     child = list()
@@ -59,7 +70,7 @@ def order1(chromosome1, chromosome2) :
         if chromosome2[i] not in fragment :
             child.append(chromosome2[i])
 
-    insertion = random.randrange(0, len(child))
+    insertion = random.randint(0, len(child))
     child = child[:insertion] + fragment + child[insertion:]
     return child
 
@@ -138,20 +149,37 @@ class ga :
         self.tasklist = tasklist
         self.dim = len(tasklist)
         self.max_iter = max_iter
-        self.bestvalues = list()
+        self.currentbest = list()
         self.population = population
+        self.bestvalues = list()
+        self.besttrace = list()
 
         for i in range(population) :
             self.individuals.append(individual(tasklist))
     
     def optimize(self) :
+        self.currentbest.clear()
         self.bestvalues.clear()
+        self.besttrace.clear()
+
         for iter in range(self.max_iter) :
             print('iter=' + str(iter))
             nextgen = list()
             # Roulette Wheel selection, retain 10% best individuals
             self.individuals = sorted(self.individuals, key = lambda item : item.fit)
-            self.bestvalues.append(self.individuals[0].fit)
+            self.currentbest.append(self.individuals[0].fit)
+
+            if self.bestvalues != [] :
+                if self.individuals[0].fit < self.bestvalues[-1] :
+                    self.bestvalues.append(self.individuals[0].fit)
+                    self.besttrace.append(self.individuals[0].chromosome)
+                else :
+                    self.bestvalues.append(self.bestvalues[-1])
+                    self.besttrace.append(self.besttrace[-1])
+            else :
+                self.bestvalues.append(self.individuals[0].fit)
+                self.besttrace.append(self.individuals[0].chromosome)
+
             for i in range(int(self.population * 0.1)) :
                 nextgen.append(self.individuals[i])
 
@@ -177,7 +205,7 @@ class ga :
                         if p > wheel[i] :
                             parent2 = i
                 
-                childchromosome = PMX(self.individuals[parent1].chromosome, 
+                childchromosome = order1(self.individuals[parent1].chromosome, 
                                     self.individuals[parent2].chromosome)
 
                 child = individual(self.tasklist)
@@ -190,7 +218,7 @@ if __name__ == '__main__' :
     ins = instance('./TestingInstances/100/100_1.txt')
     tasks = ins.tasklist
 
-    iterations = 100
+    iterations = 1500
     population = 100
 
     optimizer = ga(tasks, population, iterations)
@@ -201,18 +229,8 @@ if __name__ == '__main__' :
     x1 = range(iterations)
     y1 = optimizer.bestvalues
 
-    y1 = list()
-    for i in range(len(optimizer.bestvalues)) :
-        if y1 != [] :
-            if optimizer.bestvalues[i] < y1[-1] :
-                y1.append(optimizer.bestvalues[i])
-            else:
-                y1.append(y1[-1])
-        else :
-            y1.append(optimizer.bestvalues[i])
-
     fig = plt.figure()
-    ax1 = plt.subplot()
+    ax1 = plt.subplot(2, 1, 1)
     ax1.plot(x1, y1, label = 'best_value')
     ax1.set_xlabel('iterations')
     plt.setp(ax1.get_xticklabels(), fontsize=6)
@@ -220,35 +238,15 @@ if __name__ == '__main__' :
     ax1.legend()
     
     ax1.set_title('GA: Time Consumed: ' + str(time_c1) + 
-    's\n best value: ' + str(optimizer.bestvalues[-1]))
+    's\n best value: ' + str(optimizer.currentbest[-1]))
+
+    ax2 = plt.subplot(2, 1, 2)
+    x2 = range(iterations)
+    y2 = list()
+    for i in x2 :
+        y2.append(footrule(optimizer.besttrace[-1], optimizer.besttrace[i]))
+    ax2.plot(x2, y2, label = 'distance')
+    ax2.set_xlabel('iterations')
+    ax2.legend()
 
     plt.show()
-
-    
-
-
-
-                
-
-                
-
-                    
-
-
-
-
-            
-
-
-
-
-    
-
-    
-
-    
-    
-    
-            
-    
-    
