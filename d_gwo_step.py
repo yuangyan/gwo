@@ -334,7 +334,7 @@ if __name__ == '__main__' :
     ax1.legend()
     
     ax1.set_title('Discrete GWO\n Time Consumed: ' + str(time_c1) + 
-    's\n best value: ' + str(optimizer1.alphavalues[-1]))
+    's\n best value: ' + str(optimizer1.bestvalues[-1]))
 
     ax2 = plt.subplot(3, 1, 2)
     x2 = range(iterations)

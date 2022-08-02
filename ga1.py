@@ -183,27 +183,31 @@ class ga :
             for i in range(int(self.population * 0.1)) :
                 nextgen.append(self.individuals[i])
 
-            sum_fit = 0
-            for i in range(self.population) :
-                sum_fit += self.individuals[i].fit
+            # sum_fit = 0
+            # for i in range(self.population) :
+            #     sum_fit += self.individuals[i].fit
             
-            wheel = list()
-            for i in range(self.population) :
-                wheel.append(self.individuals[i].fit / sum_fit)
+            # wheel = list()
+            # for i in range(self.population) :
+            #     wheel.append(self.individuals[i].fit / sum_fit)
             
             while(len(nextgen) < self.population) :
-                p = random.uniform(0, 1) 
-                parent1 = 0
-                for i in range(self.population) :
-                    if p > wheel[i] :
-                        parent1 = i
-                parent2 = parent1
+                # p = random.uniform(0, 1) 
+                # parent1 = 0
+                # for i in range(self.population) :
+                #     if p > wheel[i] :
+                #         parent1 = i
+                # parent2 = parent1
           
+                # while(parent2 == parent1) :
+                #     p = random.uniform(0, 1) 
+                #     for i in range(self.population) :
+                #         if p > wheel[i] :
+                #             parent2 = i
+                parent1 = random.randrange(0, self.population)
+                parent2 = parent1
                 while(parent2 == parent1) :
-                    p = random.uniform(0, 1) 
-                    for i in range(self.population) :
-                        if p > wheel[i] :
-                            parent2 = i
+                    parent2 = random.randrange(0, self.population)
                 
                 childchromosome = order1(self.individuals[parent1].chromosome, 
                                     self.individuals[parent2].chromosome)
@@ -238,7 +242,7 @@ if __name__ == '__main__' :
     ax1.legend()
     
     ax1.set_title('GA: Time Consumed: ' + str(time_c1) + 
-    's\n best value: ' + str(optimizer.currentbest[-1]))
+    's\n best value: ' + str(optimizer.bestvalues[-1]))
 
     ax2 = plt.subplot(2, 1, 2)
     x2 = range(iterations)
